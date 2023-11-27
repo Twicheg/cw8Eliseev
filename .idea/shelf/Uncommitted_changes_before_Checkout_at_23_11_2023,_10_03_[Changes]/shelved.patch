@@ -1,0 +1,30 @@
+Index: docker-compose.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>version: \"3\"\n\nservices:\n  redis:\n    image: redis\n    ports:\n      - \"6379:6379\"\n\n  celery:\n    image: celery\n    restart: always\n    tty: true\n    command: celery -A config worker -l INFO\n    depends_on:\n      - redis\n      - web\n\n  celery_beat:\n    image: cw8\n    restart: always\n    tty: true\n    command: celery -A config beat -l INFO\n    depends_on:\n      - redis\n      - web\n\n  cw8db:\n    image: postgres\n    environment:\n      - POSTGRES_PASSWORD=12345\n      - PGDATA=/var/lib/postgresql/data/pgdata\n    ports:\n      - \"5432:5432\"\n    healthcheck:\n      test: [\"CMD-SHELL\",\"pg_isready -U postgres\"]\n      interval: 10s\n      timeout: 5s\n      retries: 5\n    volumes:\n      - pg_data:/var/lib/postgresql/data/pgdata\n\n  web:\n    image: cw8\n    tty: true\n    command: python manage.py runserver 0.0.0.0:8000\n    ports:\n      - \"8000:8000\"\n    volumes:\n      - .:/cw8\n    depends_on:\n      db:\n        condition: service_healthy\n    env_file:\n      - .env\n\n\n
+===================================================================
+diff --git a/docker-compose.yml b/docker-compose.yml
+--- a/docker-compose.yml	
++++ b/docker-compose.yml	
+@@ -42,15 +42,19 @@
+   web:
+     image: cw8
+     tty: true
+-    command: python manage.py runserver 0.0.0.0:8000
++    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
++
+     ports:
+       - "8000:8000"
+     volumes:
+       - .:/cw8
+     depends_on:
+-      db:
++      cw8db:
+         condition: service_healthy
+     env_file:
+       - .env
+ 
++  volumes:
++    pgdata:
++
+ 

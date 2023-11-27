@@ -1,0 +1,9 @@
+deploy:
+  stage: deploy
+  script:
+    - echo $ENV > .env
+    - bash deploy.sh
+  only:
+    - main
+  tags:
+    - web
