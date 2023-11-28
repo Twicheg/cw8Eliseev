@@ -42,7 +42,7 @@ services:
   web:
     build: .
     tty: true
-    command: bash -c "python manage.py collectstatic && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000 && python manage.py collectstatic "
     ports:
       - "8000:8000"
     volumes:
